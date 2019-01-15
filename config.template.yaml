@@ -1,17 +1,12 @@
-main: #basic config
-  appname: first_blood_server
-  request:
-    sig_keys:
-      '1': "i am ios"
-      '2': "i am android"
-  redis:
-    host: 'localhost'
-    port: '6379'
-  log:
-      name: first_blood_server
-      stdout: true
-      level: debug
-      facility: 1
-
-first_blood:
-
+flask:
+  app:
+    secret_key: "real secret"
+    session_cookie_name: "SID"
+    permanent_session_lifetime: 86400
+  session:
+    type: "redis"
+    redis:
+      host: "127.0.0.1"
+      port: 6379
+      db: 0
+    key_prefix: "commerce:"
