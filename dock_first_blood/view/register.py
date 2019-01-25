@@ -28,7 +28,7 @@ def phone():
         return jsonify(meta=error_dict)
     content = json.loads(json_content)
     phone_num = content.get('phone_num')
-    user = User.query.filter_by(phone_num=phone_num).first()
+    user = User.get_user(phone_num)
     if user:
         error_dict = return_function(400, 10001, '该手机号已注册')
         return jsonify(meta=error_dict)
@@ -79,7 +79,7 @@ def validate_code():
     if redis_verify_code != verify_code:
         error_dict = return_function(400, 10004, '验证码错误')
         return jsonify(meta=error_dict)
-    user = User.query.filter_by(phone_num=phone_num).first()
+    user = User.get_user(phone_num)
     create_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')  # 当前UTC时间
     temp = phone_num + verify_code + device_id + create_time
     hash_new = hashlib.sha256('first_blood'.encode())
@@ -89,19 +89,15 @@ def validate_code():
         try:
             new_user = User(phone_num=phone_num, device_id=device_id,
                             create_time=create_time, user_token=user_token)
-            db.session.add(new_user)
-            db.session.commit()
+            User.add_user(new_user)
         except:
-            db.session.rollback()
             error_dict = return_function(500, 10005, '数据库新增错误')
             return jsonify(meta=error_dict)
     elif user.user_id is None:
         try:
-            old_user = User.query.filter_by(phone_num=phone_num).update(dict(
+            User.get_user(phone_num).update_user(dict(
                 device_id=device_id, create_time=create_time, user_token=user_token))
-            db.session.commit()
         except:
-            db.session.rollback()
             error_dict = return_function(500, 10006, '数据库更新错误')
             return jsonify(meta=error_dict)
     else:
@@ -114,7 +110,7 @@ def validate_code():
 def register_user():
     phone_num = request.values.get('phone_num')
     ciphertext = request.values.get('ciphertext')
-    user = User.query.filter_by(phone_num=phone_num).first()
+    user = User.get_user(phone_num)
     if user is None:
         error_dict = return_function(400, 10008, '数据库中无该手机号')
         return jsonify(meta=error_dict)
@@ -130,11 +126,9 @@ def register_user():
     user_id = str(uuid.uuid1()).replace('-', '')
     last_login_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     try:
-        old_user = User.query.filter_by(phone_num=phone_num).update(dict(
+        User.get_user(phone_num).update_user(dict(
             user_password=user_password, user_id=user_id, last_login_time=last_login_time))
-        db.session.commit()
     except:
-        db.session.rollback()
         error_dict = return_function(500, 10011, '数据库更新uuid错误')
         return jsonify(meta=error_dict)
     return jsonify(meta={'code': 200}, data={'user_id': user_id})

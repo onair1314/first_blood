@@ -23,7 +23,7 @@ def login_phone_num():
     phone_num = content.get('phone_num')
     user_password = content.get('password')
     device_id = content.get('device_id')
-    user = User.query.filter_by(phone_num=phone_num).first()
+    user = User.get_user(phone_num)
     if user is None or user.user_token is None or user.user_id is None:
         error_dict = return_function(400, 10013, '数据库中无该手机号')
         return jsonify(meta=error_dict)
@@ -32,13 +32,10 @@ def login_phone_num():
         return jsonify(meta=error_dict)
     last_login_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
     user.last_login_time = last_login_time
-    if device_id not in user.device_id:
-        user.device_list = device_id
     try:
-        db.session.add(user)
-        db.session.commit()
+        User.get_user(phone_num).update_user(dict(
+            user_password=user_password, device_id=device_id, last_login_time=last_login_time))
     except:
-        db.session.rollback()
         error_dict = return_function(500, 10015, '数据库更新device_id错误')
         return jsonify(meta=error_dict)
     return jsonify(meta={'code': 200}, data={'user_token': user.user_token,

@@ -26,3 +26,22 @@ class User(db.Model):
             self.device_id = value
         else:
             self.device_id += ';%s' % value
+
+    def get_user(self, phone_num):
+        return User.query.filter_by(phone_num=phone_num).first()
+
+    def add_user(self, user):
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise Exception
+
+    def update_user(self, update_args):
+        try:
+            self.update(update_args)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise Exception
