@@ -11,7 +11,6 @@ from dock_first_blood.lib.register import verify_signature, decrypt_data
 from dock_first_blood.model.exceptions import return_function
 from dock_first_blood.model.db import User
 from dock_first_blood.model.config import blood_config
-from dock_first_blood.server import db
 
 
 blueprint = Blueprint('register', __name__, url_prefix='/first_blood/register')
